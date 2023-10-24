@@ -1,0 +1,159 @@
+---
+title: "uncertainty"
+format: html
+editor: visual
+---
+
+## [Reading Slides and Videos link](https://datavizm20.classes.andrewheiss.com/content/06-content/)
+
+## [Download the data and see the polished code](https://datavizm20.classes.andrewheiss.com/example/06-example/) 
+
+## [Youtube playlist link](https://www.youtube.com/watch?v=TCQwkwlj4kM&list=PLS6tnpTr39sFmy596lUElQakCrKDSHUUU&index=2)
+
+```{r}
+#| warning: false
+#| message: false
+library(tidyverse)
+library(lubridate)
+library(ggridges)
+library(gghalves)
+
+
+```
+
+## Load the data
+
+```{r}
+atl_weather <-  read_csv('data/atl-weather-2019.csv')
+```
+
+```{r}
+atl_weather <- atl_weather |> 
+  mutate(month = month(time, label = TRUE, abbr = FALSE)) |> 
+  mutate(weekday = wday(time, label = TRUE, abbr = FALSE))
+```
+
+## Histogram
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed )
+) + 
+  geom_histogram(binwidth = 1, color = 'white', boundary = 1) + 
+  scale_x_continuous(breaks = seq(0,12,1))
+```
+
+```{r faceted_histogram}
+
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed, fill = month )
+) + 
+  geom_histogram(binwidth = 1, color = 'white', boundary = 1) + 
+  scale_x_continuous(breaks = seq(0,12,1)) + 
+  facet_wrap(~month) + 
+  theme(legend.position = 'none')
+```
+
+## Density plots
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed )
+) + 
+  geom_density(fill = 'grey50') + 
+  scale_x_continuous(breaks = seq(0,12,1))
+```
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed )
+) + 
+  geom_density(fill = 'grey50', bw = 0.1) + 
+  scale_x_continuous(breaks = seq(0,12,1))
+```
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed, fill = month )
+) + 
+  geom_density() + 
+  scale_x_continuous(breaks = seq(0,12,1)) + 
+  facet_wrap(vars(month)) + 
+  theme(legend.position = 'none')
+```
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed, fill = month )
+) + 
+  geom_density(alpha = 0.5) + 
+  scale_x_continuous(breaks = seq(0,12,1)) 
+```
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = windSpeed, y = month, fill = month )
+) + 
+  geom_density_ridges(scale = 2) + 
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  theme(legend.position = 'none')
+```
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = temperatureHigh, y = fct_rev(month), fill = month )
+) + 
+  geom_density_ridges(scale = 3, quantile_lines = TRUE, quantiles = 2) + 
+ 
+  theme(legend.position = 'none')
+```
+
+```{r}
+atl_weather |> 
+ggplot(
+  aes(x = temperatureHigh, y = fct_rev(month), fill = ..x.. )) + 
+  geom_density_ridges_gradient(quantile_lines = TRUE, quantiles = 2) +
+  scale_fill_viridis_c(option = 'plasma', name = "Temp") +
+ 
+  theme_minimal()
+```
+
+## Boxes and violins
+
+```{r box-plot}
+atl_weather |> 
+  ggplot(aes(x = windSpeed, fill = month)) + # we can use x or y depending upon how we want to draw the boxplot horizontally or verically
+  geom_boxplot()
+```
+
+```{r boxplot-with-y-axis-label}
+atl_weather |> 
+  ggplot(aes(x = windSpeed, fill = month, y = fct_rev(month))) + # we can use x or y depending upon how we want to draw the boxplot horizontally or verically
+  geom_boxplot() + 
+  theme(legend.position = 'none')
+```
+
+```{r violin-plot}
+atl_weather |> 
+  ggplot(aes(x = windSpeed, fill = month, y = fct_rev(month))) + # we can use x or y depending upon how we want to draw the boxplot horizontally or verically
+  geom_violin() + 
+  theme(legend.position = 'none') + 
+  geom_point(size = 0.3, position = position_jitter(height = 0.1))
+```
+
+```{r gghalves-plot}
+
+atl_weather |> 
+  ggplot(aes(x = fct_rev(weekday), y = windSpeed)) +
+  geom_half_point(aes(color = weekday), side = 'l', size = 0.5) + 
+  geom_half_violin(aes(fill = weekday), side = 'r') + 
+  coord_flip() # adding this flipts the plot axes and gives the raincloud plot
+```
